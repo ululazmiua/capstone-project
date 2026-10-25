@@ -1,0 +1,55 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'employee',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS suppliers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(30),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS batches (
+    id SERIAL PRIMARY KEY,
+    product_name VARCHAR(150) NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    purchase_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    selling_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    expiry_date DATE,
+    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS employees (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150),
+    phone VARCHAR(30),
+    position VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sales (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL,
+    total_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sale_items (
+    id SERIAL PRIMARY KEY,
+    sale_id INTEGER NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+    batch_id INTEGER REFERENCES batches(id) ON DELETE SET NULL,
+    product_name VARCHAR(150) NOT NULL,
+    quantity INTEGER NOT NULL,
+    price NUMERIC(12, 2) NOT NULL,
+    subtotal NUMERIC(12, 2) NOT NULL
+);
