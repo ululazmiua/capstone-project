@@ -4,7 +4,14 @@ import logo from '../../Logo.jpg'
 const inputClass = 'mt-1.5 w-full rounded-xl border border-[#dce7e5] bg-white px-4 py-3 text-sm text-[#19352e] outline-none transition placeholder:text-[#9aa9a4] focus:border-[#4b9baa] focus:shadow-[0_0_0_3px_rgba(23,115,139,0.12)]'
 
 function RegistrationForm({ onSubmit, onBack }) {
-  const [form, setForm] = useState({ full_name: '', username: '', email: '', phone: '' })
+  const [form, setForm] = useState({
+    full_name: '',
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+    password_confirmation: '',
+  })
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
@@ -12,8 +19,18 @@ function RegistrationForm({ onSubmit, onBack }) {
   const submit = (event) => {
     event.preventDefault()
     setError('')
+    if (form.password !== form.password_confirmation) {
+      setError('Konfirmasi kata sandi tidak sama.')
+      return
+    }
+
     try {
-      onSubmit(form)
+      onSubmit({
+        full_name: form.full_name,
+        username: form.username,
+        email: form.email,
+        phone: form.phone,
+      })
       setSubmitted(true)
     } catch (submitError) {
       setError(submitError.message || 'Permintaan pendaftaran gagal dikirim.')
@@ -25,7 +42,7 @@ function RegistrationForm({ onSubmit, onBack }) {
       <div className="rounded-2xl border border-[#d4eadc] bg-[#edf7f0] p-5" role="status">
         <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-[#278264]" aria-hidden="true">✓</span>
         <h3 className="text-base font-bold text-[#236b51]">Permintaan terkirim</h3>
-        <p className="mt-2 text-sm leading-6 text-[#52685f]">Pendaftaranmu menunggu persetujuan admin. Setelah disetujui, admin akan membantu aktivasi akun.</p>
+        <p className="mt-2 text-sm leading-6 text-[#52685f]">Pendaftaranmu menunggu persetujuan admin. Form kata sandi saat ini belum terhubung ke proses aktivasi akun.</p>
         <button type="button" onClick={onBack} className="mt-5 w-full rounded-xl bg-[#104b6b] px-4 py-3 text-sm font-bold text-white hover:bg-[#0b3c56]">Kembali ke login</button>
       </div>
     )
@@ -55,6 +72,15 @@ function RegistrationForm({ onSubmit, onBack }) {
           Nomor telepon
           <input className={inputClass} type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" maxLength={40} placeholder="08xxxxxxxxxx" />
         </label>
+        <label className="block text-xs font-bold text-[#40584f]">
+          Kata sandi *
+          <input className={inputClass} type="password" value={form.password} onChange={set('password')} autoComplete="new-password" minLength={8} required placeholder="Minimal 8 karakter" />
+        </label>
+        <label className="block text-xs font-bold text-[#40584f]">
+          Konfirmasi kata sandi *
+          <input className={inputClass} type="password" value={form.password_confirmation} onChange={set('password_confirmation')} autoComplete="new-password" minLength={8} required placeholder="Ulangi kata sandi" />
+        </label>
+        <p className="-mt-2 text-[11px] leading-5 text-[#788984]">Kata sandi hanya untuk tampilan form saat ini dan belum digunakan untuk aktivasi akun.</p>
         {error && <p className="rounded-xl border border-[#f0d2cc] bg-[#fff1ee] px-3.5 py-3 text-xs leading-5 text-[#a43e32]" role="alert">{error}</p>}
         <button type="submit" className="flex w-full items-center justify-center rounded-xl bg-[#104b6b] px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_18px_rgba(16,75,107,0.18)] transition hover:bg-[#0b3c56]">
           Kirim permintaan pendaftaran
