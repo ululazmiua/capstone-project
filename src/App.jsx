@@ -18,6 +18,7 @@ import Penjualan from './pages/Penjualan.jsx'
 import Suppliers from './pages/Suppliers.jsx'
 import Admin from './pages/Admin.jsx'
 import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 import { createRegistrationRequest, getRegistrationRequests, reviewRegistrationRequest } from './registrationRequests.js'
 
 const TABS = [
@@ -39,6 +40,7 @@ export default function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname.replace(/\/+$/, '') || '/')
   const isAdminRoute = pathname === '/admin'
   const isLoginRoute = pathname === '/login'
+  const isRegisterRoute = pathname === '/register'
   const [tab, setTab] = useState(() => isAdminRoute ? 'overview' : 'ringkasan')
   const [data, setData] = useState([])
   const [suppliers, setSuppliers] = useState([])
@@ -70,7 +72,7 @@ export default function App() {
       setPathname('/login')
       return
     }
-    if (pathname !== '/login' && pathname !== '/admin' && pathname !== '/karyawan') {
+    if (pathname !== '/login' && pathname !== '/register' && pathname !== '/admin' && pathname !== '/karyawan') {
       window.history.replaceState(null, '', '/login')
       setPathname('/login')
       return
@@ -182,7 +184,8 @@ export default function App() {
   const profileName = isAdminRoute ? 'Admin' : 'Karyawan'
   const profileInitial = profileName.trim().charAt(0).toUpperCase()
 
-  if (isLoginRoute) return <Login onRegister={registerEmployee} />
+  if (isLoginRoute) return <Login />
+  if (isRegisterRoute) return <Register onRegister={registerEmployee} />
 
   return (
     <div className="min-h-screen bg-[#f5f7f4] text-[#19352e] md:grid md:grid-cols-[252px_minmax(0,1fr)]">
