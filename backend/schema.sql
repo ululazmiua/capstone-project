@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    username VARCHAR(60) UNIQUE,
     email VARCHAR(150) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'employee',
@@ -53,3 +54,17 @@ CREATE TABLE IF NOT EXISTS sale_items (
     price NUMERIC(12, 2) NOT NULL,
     subtotal NUMERIC(12, 2) NOT NULL
 );
+
+-- Migrasi aman jika tabel users sudah terlanjur dibuat sebelumnya tanpa kolom username
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(60) UNIQUE;
+
+-- Isi username awal untuk data lama yang masih NULL (diambil dari email)
+UPDATE users 
+SET username = SPLIT_PART(email, '@', 1) 
+WHERE username IS NULL AND email IS NOT NULL;
+
+-- Hubungkan baris employees lama ke tabel users jika user_id masih NULL
+UPDATE employees e
+SET user_id = u.id
+FROM users u
+WHERE e.user_id IS NULL AND LOWER(e.email) = LOWER(u.email);
