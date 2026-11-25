@@ -48,7 +48,9 @@ export default function Register({ onBackToLogin, onRegister }) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -61,6 +63,16 @@ export default function Register({ onBackToLogin, onRegister }) {
     const cleanName = fullName.trim()
     const cleanUsername = username.trim()
     const cleanEmail = email.trim().toLowerCase()
+
+    if (!cleanUsername) {
+      setError('Username wajib diisi.')
+      return
+    }
+
+    if (password !== passwordConfirmation) {
+      setError('Konfirmasi password tidak sama.')
+      return
+    }
 
     if (!cleanName || !cleanEmail || !password) {
       setError('Nama lengkap, email, dan kata sandi wajib diisi.')
@@ -76,7 +88,7 @@ export default function Register({ onBackToLogin, onRegister }) {
     try {
       const response = await registerUser({
         name: cleanName,
-        username: cleanUsername || cleanEmail.split('@')[0],
+        username: cleanUsername,
         email: cleanEmail,
         password,
       })
@@ -84,9 +96,8 @@ export default function Register({ onBackToLogin, onRegister }) {
       onRegister?.({
         name: cleanName,
         full_name: cleanName,
-        username: cleanUsername || cleanEmail.split('@')[0],
+        username: cleanUsername,
         email: cleanEmail,
-        phone: '',
         password,
       })
 
@@ -98,6 +109,7 @@ export default function Register({ onBackToLogin, onRegister }) {
       setUsername('')
       setEmail('')
       setPassword('')
+      setPasswordConfirmation('')
     } catch (err) {
       setError(err?.message || 'Pendaftaran gagal diproses. Periksa data lalu coba lagi.')
     } finally {
@@ -166,7 +178,7 @@ export default function Register({ onBackToLogin, onRegister }) {
             </label>
 
             <label htmlFor="reg-username" className="block text-xs font-semibold text-[#52685f]">
-              Username
+              Username *
               <input
                 id="reg-username"
                 name="username"
@@ -174,8 +186,14 @@ export default function Register({ onBackToLogin, onRegister }) {
                 className={inputClass}
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
+                onInvalid={(event) => {
+                  if (!event.currentTarget.value.trim()) {
+                    setError('Username wajib diisi.')
+                  }
+                }}
                 placeholder="Contoh: username123"
                 autoComplete="username"
+                required
               />
             </label>
 
@@ -217,6 +235,37 @@ export default function Register({ onBackToLogin, onRegister }) {
                   className="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 rounded-lg p-1 text-[#52685f] transition hover:bg-[#f0f4f2] hover:text-[#104b6b]"
                 >
                   <EyeIcon open={showPassword} />
+                </button>
+              </div>
+            </label>
+
+            <label htmlFor="reg-password-confirmation" className="block text-xs font-semibold text-[#52685f]">
+              Konfirmasi password *
+              <div className="relative">
+                <input
+                  id="reg-password-confirmation"
+                  name="password_confirmation"
+                  type={showPasswordConfirmation ? 'text' : 'password'}
+                  className={`${inputClass} pr-11`}
+                  value={passwordConfirmation}
+                  onChange={(event) => setPasswordConfirmation(event.target.value)}
+                  placeholder="Ulangi password"
+                  minLength={8}
+                  autoComplete="new-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordConfirmation((prev) => !prev)}
+                  aria-label={
+                    showPasswordConfirmation ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
+                  }
+                  title={
+                    showPasswordConfirmation ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
+                  }
+                  className="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 rounded-lg p-1 text-[#52685f] transition hover:bg-[#f0f4f2] hover:text-[#104b6b]"
+                >
+                  <EyeIcon open={showPasswordConfirmation} />
                 </button>
               </div>
             </label>

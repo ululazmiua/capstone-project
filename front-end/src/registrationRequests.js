@@ -32,7 +32,6 @@ export function createRegistrationRequest(details) {
     full_name: details.full_name.trim(),
     username,
     email: details.email.trim(),
-    phone: details.phone.trim(),
     // Hanya untuk mode front end: password disimpan di browser agar akun
     // bisa dibuat otomatis saat Admin menyetujui pendaftaran.
     password: details.password || '',

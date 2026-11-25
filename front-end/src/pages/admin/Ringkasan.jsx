@@ -6,7 +6,7 @@ import { inputClass, Metric, panelClass } from './components.jsx'
 
 // Halaman Ringkasan (admin)
 export default function AdminRingkasan({ data = [] }) {
-  const safeData = Array.isArray(data) ? data : []
+  const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data])
 
   const [from, setFrom] = useState(firstOfMonth)
   const [to, setTo] = useState(today)

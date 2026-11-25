@@ -25,16 +25,6 @@ function toDateInputValue(value) {
   return ''
 }
 
-const newBatch = () => ({
-  product_name: '',
-  category: '',
-  batch_number: '',
-  current_stock: '',
-  unit_price: '',
-  expiry_date: '',
-  supplier_id: '',
-})
-
 function BatchForm({
   initial,
   suppliers = [],
@@ -44,7 +34,6 @@ function BatchForm({
   onSubmit,
 }) {
   const [form, setForm] = useState(() => ({
-    ...newBatch(),
     ...initial,
     expiry_date: toDateInputValue(initial?.expiry_date),
     supplier_id:
@@ -120,7 +109,7 @@ function BatchForm({
               id="batch-form-title"
               className="mb-1 text-lg font-bold text-[#19352e]"
             >
-              {initial.batch_id ? 'Ubah data batch' : 'Tambah barang / batch'}
+              Ubah data batch
             </h3>
             <p className="text-xs text-[#788984]">
               Isi detail produk dan batch agar stok serta masa kedaluwarsa bisa dipantau.
@@ -262,9 +251,7 @@ function BatchForm({
             >
               {saving
                 ? 'Menyimpan…'
-                : initial.batch_id
-                  ? 'Simpan perubahan'
-                  : 'Tambah batch'}
+                : 'Simpan perubahan'}
             </button>
           </div>
         </form>
@@ -316,8 +303,7 @@ export default function Batch({
     setFormError('')
 
     try {
-      const existing = formInitial?.batch_id ? formInitial : null
-      await onSaveBatch(batch, existing)
+      await onSaveBatch(batch, formInitial)
       setFormInitial(null)
     } catch (error) {
       setFormError(
@@ -341,16 +327,6 @@ export default function Batch({
           </p>
         </div>
 
-        <button
-          type="button"
-          className="rounded-lg bg-[#104b6b] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0b3c56]"
-          onClick={() => {
-            setFormError('')
-            setFormInitial(newBatch())
-          }}
-        >
-          + Tambah barang
-        </button>
       </div>
 
       <div className="mb-3.5 flex flex-wrap gap-2">
@@ -484,7 +460,7 @@ export default function Batch({
 
       {formInitial && (
         <BatchForm
-          key={formInitial.batch_id ?? 'new'}
+          key={formInitial.batch_id}
           initial={formInitial}
           suppliers={suppliers}
           saving={saving}

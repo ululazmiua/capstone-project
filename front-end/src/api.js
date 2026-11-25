@@ -20,7 +20,6 @@ const DEFAULT_SUPPLIERS = [
   {
     supplier_id: 1,
     name: 'PT Satwa Sejahtera',
-    contact_person: 'Budi Santoso',
     phone: '081234567801',
     email: 'order@satwasejahtera.co.id',
     address: 'Jl. Merdeka No. 10, Bandung',
@@ -28,7 +27,6 @@ const DEFAULT_SUPPLIERS = [
   {
     supplier_id: 2,
     name: 'CV Pet Nutrisi Nusantara',
-    contact_person: 'Sari Wulandari',
     phone: '081234567802',
     email: 'sales@petnutrisi.id',
     address: 'Jl. Raya Bogor Km 21, Jakarta Timur',
@@ -36,7 +34,6 @@ const DEFAULT_SUPPLIERS = [
   {
     supplier_id: 3,
     name: 'Apotek Hewan Medika',
-    contact_person: 'drh. Andi Pratama',
     phone: '081234567803',
     email: 'medika@apotekhewan.id',
     address: 'Jl. Pahlawan No. 5, Subang',
@@ -49,7 +46,6 @@ const DEFAULT_KARYAWAN = [
     full_name: 'Admin Royal PetCare',
     username: 'admin',
     email: 'admin@royalpetcare.id',
-    phone: '',
     role: 'admin',
     status: 'active',
     password: 'admin123',
@@ -59,7 +55,6 @@ const DEFAULT_KARYAWAN = [
     full_name: 'Karyawan Contoh',
     username: 'karyawan',
     email: 'karyawan@royalpetcare.id',
-    phone: '',
     role: 'karyawan',
     status: 'active',
     password: 'karyawan123',
@@ -82,7 +77,8 @@ function read(key, fallback) {
 function write(key, value) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
+  } catch (error) {
+    console.warn('Data gagal disimpan di browser:', error)
   }
   return value
 }
@@ -333,7 +329,6 @@ function cleanSupplierInput(supplier) {
   if (!name) fail('Nama supplier wajib diisi.')
   return {
     name,
-    contact_person: String(supplier.contact_person || '').trim(),
     phone: String(supplier.phone || '').trim(),
     email: String(supplier.email || '').trim(),
     address: String(supplier.address || '').trim(),
@@ -438,7 +433,8 @@ function loadKaryawan() {
 }
 
 function withoutPassword(karyawan) {
-  const { password, ...rest } = karyawan
+  const rest = { ...karyawan }
+  delete rest.password
   return clone(rest)
 }
 
@@ -472,7 +468,6 @@ export async function createKaryawan(karyawan) {
     full_name: fullName,
     username,
     email: String(karyawan.email || '').trim(),
-    phone: String(karyawan.phone || '').trim(),
     role: karyawan.role === 'admin' ? 'admin' : 'karyawan',
     status: 'active',
     password,
@@ -494,7 +489,6 @@ export async function updateKaryawan(karyawanId, karyawan) {
     full_name: String(karyawan.full_name || karyawan.name || old.full_name).trim(),
     username: String(karyawan.username || old.username).trim(),
     email: String(karyawan.email ?? old.email ?? '').trim(),
-    phone: String(karyawan.phone ?? old.phone ?? '').trim(),
     role: karyawan.role === 'admin' ? 'admin' : karyawan.role ? 'karyawan' : old.role,
     status: karyawan.status === 'inactive' ? 'inactive' : karyawan.status ? 'active' : old.status,
   }

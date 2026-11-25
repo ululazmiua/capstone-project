@@ -11,7 +11,6 @@ const karyawanBlank = {
   full_name: '',
   username: '',
   email: '',
-  phone: '',
   password: '',
   role: 'karyawan',
   status: 'active',
@@ -94,7 +93,6 @@ function KaryawanDialog({ initial, busy, error, onClose, onSave }) {
     full_name: initial.full_name || initial.name || '',
     username: initial.username || '',
     email: initial.email || '',
-    phone: initial.phone || '',
     password: '',
     role: initial.role === 'admin' ? 'admin' : 'karyawan',
     status: initial.status === 'inactive' ? 'inactive' : 'active',
@@ -181,17 +179,6 @@ function KaryawanDialog({ initial, busy, error, onClose, onSave }) {
               value={form.email}
               onChange={set('email')}
               maxLength={150}
-            />
-          </label>
-
-          <label className="text-xs font-semibold text-[#52685f]">
-            Nomor telepon
-            <input
-              className={inputClass}
-              type="tel"
-              value={form.phone}
-              onChange={set('phone')}
-              maxLength={40}
             />
           </label>
 
@@ -429,7 +416,6 @@ export default function AdminKaryawan({
       if (status === 'approved') {
         const cleanUsername = (request.username || '').trim()
         const cleanEmail = (request.email || '').trim()
-        const cleanPhone = (request.phone || '').trim()
         const rawPassword = request.password || 'PetCare1234'
 
         if (!isAccountCreated(request)) {
@@ -438,7 +424,6 @@ export default function AdminKaryawan({
             full_name: cleanName,
             username: cleanUsername,
             ...(cleanEmail ? { email: cleanEmail } : {}),
-            ...(cleanPhone ? { phone: cleanPhone } : {}),
             role: 'karyawan',
             password: rawPassword,
           }
@@ -493,7 +478,6 @@ export default function AdminKaryawan({
       const cleanName = form.full_name.trim()
       const cleanUsername = form.username.trim()
       const trimmedEmail = form.email.trim()
-      const trimmedPhone = form.phone.trim()
       const trimmedPassword = (form.password || '').trim()
 
       const selectedRole = form.role === 'admin' ? 'admin' : 'karyawan'
@@ -506,7 +490,6 @@ export default function AdminKaryawan({
         username: cleanUsername,
         user_name: cleanUsername,
         ...(trimmedEmail ? { email: trimmedEmail } : {}),
-        ...(trimmedPhone ? { phone: trimmedPhone } : {}),
         role: selectedRole,
         ...(trimmedPassword ? { password: trimmedPassword } : {}),
         ...(isEditing
@@ -530,7 +513,6 @@ export default function AdminKaryawan({
         full_name: rawSaved.full_name ?? rawSaved.name ?? cleanName,
         username: rawSaved.username || cleanUsername,
         email: rawSaved.email ?? trimmedEmail,
-        phone: rawSaved.phone ?? trimmedPhone,
         role: rawSaved.role || selectedRole,
         status: isEditing
           ? rawSaved.status || selectedStatus
@@ -629,6 +611,14 @@ export default function AdminKaryawan({
 
   return (
     <>
+      <div className="mb-[22px]">
+        <h2 className="text-[22px] font-bold leading-tight tracking-[-0.04em] sm:text-[28px]">
+          Kelola Karyawan
+        </h2>
+        <p className="mt-[7px] text-sm text-[#788984]">
+          Atur akun dan role akses admin atau karyawan.
+        </p>
+      </div>
       <section className={panelClass}>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -695,7 +685,7 @@ export default function AdminKaryawan({
                   <tr>
                     <th className="py-3 pr-3">Nama</th>
                     <th className="py-3 pr-3">Username</th>
-                    <th className="py-3 pr-3">Email / telepon</th>
+                    <th className="py-3 pr-3">Email</th>
                     <th className="py-3 pr-3">Diajukan</th>
                     <th className="py-3">Tindakan</th>
                   </tr>
@@ -716,9 +706,7 @@ export default function AdminKaryawan({
                       </td>
 
                       <td className="py-3 pr-3">
-                        {[request.email, request.phone]
-                          .filter(Boolean)
-                          .join(' · ') || '—'}
+                        {request.email || '—'}
                       </td>
 
                       <td className="py-3 pr-3">
@@ -829,7 +817,6 @@ export default function AdminKaryawan({
                                       request.full_name || request.name || '',
                                     username: request.username || '',
                                     email: request.email || '',
-                                    phone: request.phone || '',
                                     password: '',
                                     role: 'karyawan',
                                     status: 'active',
