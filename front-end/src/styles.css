@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 3px solid #8cc5a4;
+    outline-offset: 3px;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: #7eae96;
+    box-shadow: 0 0 0 3px rgba(23, 115, 91, 0.1);
+  }
+}
