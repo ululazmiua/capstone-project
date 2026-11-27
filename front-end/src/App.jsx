@@ -23,11 +23,6 @@ import AdminSupplier from './pages/admin/Supplier.jsx'
 import AdminKaryawan from './pages/admin/Karyawan.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import DashboardLayout from './layouts/DashboardLayout.jsx'
-import {
-  createRegistrationRequest,
-  getRegistrationRequests,
-  reviewRegistrationRequest,
-} from './registrationRequests.js'
 
 const SESSION_KEY = 'petcare_auth_session'
 
@@ -68,8 +63,6 @@ export default function App() {
   const [supplierError, setSupplierError] = useState('')
   const [pulled, setPulled] = useState(() => new Set())
   const [toast, setToast] = useState('')
-  const [registrationRequests, setRegistrationRequests] = useState([])
-  const [registrationError, setRegistrationError] = useState('')
 
   const handleLoginSuccess = useCallback(
     (account) => {
@@ -101,14 +94,6 @@ export default function App() {
     navigate('/login', { replace: true })
   }, [navigate])
 
-  useEffect(() => {
-    try {
-      setRegistrationRequests(getRegistrationRequests())
-    } catch {
-      setRegistrationError('Data permintaan pendaftaran tidak dapat dibaca.')
-    }
-  }, [])
-
   const load = useCallback(() => {
     setState('loading')
     getBatches()
@@ -137,9 +122,38 @@ export default function App() {
     }
   }, [authUser, load])
 
+  useEffect(() => {
+    try {
+      localStorage.removeItem('royal-petcare-registration-requests')
+      localStorage.removeItem('petcare_dismissed_registrations')
+      const legacyKeys = []
+
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index)
+        if (key && key.startsWith('royal-petcare-demo:')) {
+          legacyKeys.push(key)
+        }
+      }
+
+      legacyKeys.forEach((key) => localStorage.removeItem(key))
+    } catch (error) {
+      console.warn('Pembersihan data lama gagal:', error)
+    }
+  }, [])
+
   const say = (m) => {
     setToast(m)
     setTimeout(() => setToast(''), 2200)
+  }
+
+  const supplierNameOf = (supplierId) => {
+    if (supplierId === null || supplierId === undefined || supplierId === '') {
+      return ''
+    }
+
+    return suppliers.find(
+      (item) => String(item.id ?? item.supplier_id) === String(supplierId)
+    )?.name || ''
   }
 
   const pull = (b) => {
@@ -148,7 +162,13 @@ export default function App() {
   }
 
   const saveBatch = async (batch, existing) => {
-    const saved = existing ? await updateBatch(existing.batch_id, batch) : await createBatch(batch)
+    const batchWithSupplier = {
+      ...batch,
+      supplier_name: supplierNameOf(batch.supplier_id),
+    }
+    const saved = existing
+      ? await updateBatch(existing.batch_id, batchWithSupplier)
+      : await createBatch(batchWithSupplier)
     setData((current) =>
       existing
         ? current.map((item) => (item.batch_id === existing.batch_id ? saved : item))
@@ -158,7 +178,11 @@ export default function App() {
   }
 
   const receiveGoods = async (receipt) => {
-    const saved = await createBatch(receipt)
+    const receiptWithSupplier = {
+      ...receipt,
+      supplier_name: supplierNameOf(receipt.supplier_id),
+    }
+    const saved = await createBatch(receiptWithSupplier)
     setData((current) => [saved, ...current])
     say('Barang masuk berhasil dicatat.')
   }
@@ -223,22 +247,6 @@ export default function App() {
       })
   }
 
-  const registerKaryawan = (details) => {
-    const requests = createRegistrationRequest(details)
-    setRegistrationRequests(requests)
-    setRegistrationError('')
-  }
-
-  const reviewRegistration = (requestId, status) => {
-    const requests = reviewRegistrationRequest(requestId, status)
-    setRegistrationRequests(requests)
-    setRegistrationError('')
-  }
-
-  const removeRegistration = (requestId) => {
-    setRegistrationRequests((current) => current.filter((item) => item.request_id !== requestId))
-  }
-
   const props = { data, pulled, pull, suppliers, onSaveBatch: saveBatch }
 
   return (
@@ -254,7 +262,6 @@ export default function App() {
               <Login
                 onLogin={handleLoginSuccess}
                 onRegisterClick={() => navigate('/register')}
-                onRegister={registerKaryawan}
               />
             )
           }
@@ -264,7 +271,6 @@ export default function App() {
           element={
             <Register
               onBackToLogin={() => navigate('/login')}
-              onRegister={registerKaryawan}
             />
           }
         />
@@ -300,17 +306,7 @@ export default function App() {
                 />
               }
             />
-            <Route
-              path="karyawan"
-              element={
-                <AdminKaryawan
-                  registrationRequests={registrationRequests}
-                  registrationError={registrationError}
-                  onReviewRegistration={reviewRegistration}
-                  onDeleteRegistration={removeRegistration}
-                />
-              }
-            />
+            <Route path="karyawan" element={<AdminKaryawan />} />
             <Route path="*" element={<Navigate to="ringkasan" replace />} />
           </Route>
         </Route>

@@ -1,27 +1,49 @@
 # Royal PetCare – Front End (Tim A26-CS071)
 
-Antarmuka web untuk memantau stok dan tanggal kedaluwarsa produk Royal PetCare.
-Folder ini **hanya berisi front end** dan bisa dijalankan tanpa backend.
+Antarmuka web untuk pengelolaan stok, penjualan, supplier, dan akun pengguna.
 
 ## Menjalankan
+
+Login, pendaftaran, supplier, dan akun karyawan memerlukan backend PostgreSQL dari folder `backend`, tersedia di `http://localhost:5000`.
+
+Jalankan front-end dari folder ini:
+
 ```bash
 npm install
-npm run dev      # buka http://localhost:5173
-npm run build    # hasil di folder dist
+npm run dev
 ```
 
-## Akun contoh
-| Role     | Username   | Password      |
-|----------|------------|---------------|
-| Admin    | `admin`    | `admin123`    |
-| Karyawan | `karyawan` | `karyawan123` |
+Buka aplikasi di `http://localhost:5173`. Untuk membuat build produksi, jalankan `npm run build`.
 
 ## Sumber data
-- Data stok awal: `public/data/inventory_batches.csv` (data sintetis dari tim Data Science, acuan tanggal 23/10/2026).
-- Semua perubahan (batch, barang masuk, penjualan, supplier, akun) disimpan di browser (localStorage) lewat `src/api.js`.
-- Untuk mengulang data dari awal, buka Console browser lalu jalankan `resetDemoData()` dan muat ulang halaman.
+
+- Data awal berisi 1.300 batch dari `public/data/inventory_batches.csv`, dengan enam kategori dan acuan tanggal 25/11/2026.
+- Status `AMAN`, `WASPADA`, `KRITIS`, dan `KADALUARSA`, beserta jumlah hari menuju kedaluwarsa, dihitung ulang berdasarkan tanggal hari ini.
+- Data stok dan penjualan disimpan di `localStorage`. Login, pendaftaran, supplier, dan akun karyawan menggunakan backend.
+- Untuk mengulang data stok dan penjualan dari awal, buka Console browser lalu jalankan `resetDemoData()` dan muat ulang halaman.
 
 ## Struktur
-- `src/api.js` – lapisan data lokal (pengganti panggilan backend)
-- `src/pages/` – Login, Register, Admin, Ringkasan, Stok & Batch, Barang Masuk, Penjualan, Supplier
-- `src/components.jsx`, `src/util.js`, `src/styles.css`
+
+```text
+front-end/
+├── public/
+│   └── data/
+│       └── inventory_batches.csv
+├── src/
+│   ├── layouts/
+│   ├── pages/
+│   │   └── admin/
+│   ├── routes/
+│   ├── api.js
+│   ├── App.jsx
+│   ├── components.jsx
+│   ├── main.jsx
+│   ├── styles.css
+│   └── util.js
+├── Logo.jpg
+├── index.html
+├── package.json
+├── package-lock.json
+├── tailwind.config.js
+└── vite.config.js
+```

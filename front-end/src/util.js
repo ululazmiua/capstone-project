@@ -16,3 +16,14 @@ export const STATUS = {
   AMAN: { label: 'Aman', cls: 'ok' },
 }
 export const nilai = (b) => b.current_stock * b.unit_price
+export const validateUsername = (username) => {
+  const valid =
+    typeof username === 'string' &&
+    username.length >= 3 &&
+    username.length <= 30 &&
+    !/[^A-Za-z0-9._-]/.test(username)
+
+  return valid
+    ? ''
+    : 'Username 3–30 karakter, hanya huruf, angka, titik, garis bawah, atau strip (tanpa spasi dan @).'
+}

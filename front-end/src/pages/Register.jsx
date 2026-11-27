@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import logo from '../../Logo.jpg'
 import { registerUser } from '../api.js'
+import { validateUsername } from '../util.js'
 
 const inputClass =
   'mt-1.5 w-full rounded-xl border border-[#dfe7e1] bg-white px-3.5 py-2.5 text-sm text-[#19352e] outline-none transition focus:border-[#104b6b] focus:shadow-[0_0_0_3px_rgba(16,75,107,0.1)]'
@@ -43,7 +44,7 @@ function EyeIcon({ open, size = 'h-5 w-5' }) {
   )
 }
 
-export default function Register({ onBackToLogin, onRegister }) {
+export default function Register({ onBackToLogin }) {
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -64,8 +65,9 @@ export default function Register({ onBackToLogin, onRegister }) {
     const cleanUsername = username.trim()
     const cleanEmail = email.trim().toLowerCase()
 
-    if (!cleanUsername) {
-      setError('Username wajib diisi.')
+    const usernameError = validateUsername(username)
+    if (usernameError) {
+      setError(usernameError)
       return
     }
 
@@ -88,14 +90,6 @@ export default function Register({ onBackToLogin, onRegister }) {
     try {
       const response = await registerUser({
         name: cleanName,
-        username: cleanUsername,
-        email: cleanEmail,
-        password,
-      })
-
-      onRegister?.({
-        name: cleanName,
-        full_name: cleanName,
         username: cleanUsername,
         email: cleanEmail,
         password,

@@ -1,9 +1,9 @@
 import Papa from 'papaparse'
 
 // =====================================================================
-// Semua data disimpan di browser (localStorage). Data stok awal diambil
-// dari public/data/inventory_batches.csv. Nama fungsi sengaja dibuat
-// sama seperti kontrak API, supaya halaman lain tidak perlu diubah.
+// Data stok dan penjualan disimpan di localStorage, dengan data stok awal
+// dari public/data/inventory_batches.csv. Supplier, akun, login, dan
+// pendaftaran menggunakan backend.
 // Untuk mengulang data dari awal: panggil resetDemoData() di console
 // browser, atau hapus localStorage situs ini.
 // =====================================================================
@@ -11,55 +11,8 @@ import Papa from 'papaparse'
 const PREFIX = 'royal-petcare-demo-v2:'
 const KEYS = {
   batches: `${PREFIX}batches`,
-  suppliers: `${PREFIX}suppliers`,
   sales: `${PREFIX}sales`,
-  karyawan: `${PREFIX}karyawan`,
 }
-
-const DEFAULT_SUPPLIERS = [
-  {
-    supplier_id: 1,
-    name: 'PT Satwa Sejahtera',
-    phone: '081234567801',
-    email: 'order@satwasejahtera.co.id',
-    address: 'Jl. Merdeka No. 10, Bandung',
-  },
-  {
-    supplier_id: 2,
-    name: 'CV Pet Nutrisi Nusantara',
-    phone: '081234567802',
-    email: 'sales@petnutrisi.id',
-    address: 'Jl. Raya Bogor Km 21, Jakarta Timur',
-  },
-  {
-    supplier_id: 3,
-    name: 'Apotek Hewan Medika',
-    phone: '081234567803',
-    email: 'medika@apotekhewan.id',
-    address: 'Jl. Pahlawan No. 5, Subang',
-  },
-]
-
-const DEFAULT_KARYAWAN = [
-  {
-    karyawan_id: 1,
-    full_name: 'Admin Royal PetCare',
-    username: 'admin',
-    email: 'admin@royalpetcare.id',
-    role: 'admin',
-    status: 'active',
-    password: 'admin123',
-  },
-  {
-    karyawan_id: 2,
-    full_name: 'Karyawan Contoh',
-    username: 'karyawan',
-    email: 'karyawan@royalpetcare.id',
-    role: 'karyawan',
-    status: 'active',
-    password: 'karyawan123',
-  },
-]
 
 // ---------------------------------------------------------------------
 // Utilitas penyimpanan
@@ -234,14 +187,11 @@ function cleanBatchInput(batch) {
   return { productName, category, stock, price, expiry }
 }
 
-function supplierNameOf(supplierId, fallbackName) {
+function supplierNameOf(supplierId, supplierName) {
   if (supplierId === null || supplierId === undefined || supplierId === '') {
-    return fallbackName || ''
+    return ''
   }
-  const found = read(KEYS.suppliers, DEFAULT_SUPPLIERS).find(
-    (s) => String(s.supplier_id) === String(supplierId)
-  )
-  return found?.name || fallbackName || ''
+  return supplierName || ''
 }
 
 export async function createBatch(batch) {
@@ -314,7 +264,7 @@ export async function updateBatch(batchId, batch) {
     initial_stock: Math.max(Number(old.initial_stock) || 0, stock + (Number(old.quantity_sold) || 0)),
     expiry_date: expiry,
     supplier_id: supplierId,
-    supplier_name: supplierNameOf(supplierId, batch.supplier_name || old.supplier_name),
+    supplier_name: supplierNameOf(supplierId, batch.supplier_name),
     ...expiryInfo(expiry, stock),
   }
 
