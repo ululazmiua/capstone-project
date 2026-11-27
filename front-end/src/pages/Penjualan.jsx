@@ -66,8 +66,8 @@ function SaleForm({ data, onSubmit }) {
       setQuantity('')
       setSoldAt(localDate())
       setMessage({ type: 'success', text: `${units} unit ${batch.product_name} berhasil dicatat sebagai penjualan.` })
-    } catch {
-      setMessage({ type: 'error', text: 'Penjualan gagal dicatat. Periksa data lalu coba lagi.' })
+    } catch (error) {
+      setMessage({ type: 'error', text: error?.message || 'Penjualan gagal dicatat. Periksa data lalu coba lagi.' })
     } finally {
       setSaving(false)
     }
@@ -137,7 +137,7 @@ function SaleForm({ data, onSubmit }) {
           </label>
           <label className="text-xs font-semibold text-[#52685f]">
             Tanggal penjualan *
-            <input className={controlClass} type="date" value={soldAt} onChange={(event) => { setSoldAt(event.target.value); setMessage(null) }} required />
+            <input className={controlClass} type="date" min={batch?.entry_date ? String(batch.entry_date).slice(0, 10) : undefined} max={localDate()} value={soldAt} onChange={(event) => { setSoldAt(event.target.value); setMessage(null) }} required />
           </label>
           {message && (
             <p className={`rounded-lg px-3 py-2.5 text-sm sm:col-span-2 lg:col-span-4 ${message.type === 'success' ? 'bg-[#e6f4ed] text-[#236b51]' : 'bg-[#fbeae7] text-[#a43e32]'}`} role={message.type === 'success' ? 'status' : 'alert'}>
@@ -184,7 +184,7 @@ export default function Penjualan({ data, onRecordSale }) {
       </div>
       <section className="mb-5 rounded-[15px] border border-[#e7ece8] bg-white px-[15px] py-[17px] shadow-[0_4px_16px_rgba(29,56,44,0.025)] sm:px-[22px] sm:py-[21px]">
         <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Rekomendasi Prioritas Jual ({flagged.length} batch)</h3>
-        <p className="mb-0 mt-0 text-xs text-[#788984]">Sementara berasal dari kolom <code className="rounded bg-[#f3f6f3] px-1 py-0.5">priority_sale_flag</code> di data. Nanti dapat diganti hasil prediksi dari tim AI.</p>
+        <p className="mb-0 mt-0 text-xs text-[#788984]">Sementara berasal dari kolom <code className="rounded bg-[#f3f6f3] px-1 py-0.5">priority_sale_flag</code> di data. Batch baru yang dicatat lewat aplikasi sementara ditandai jika sisa masa kedaluwarsanya 30 hari atau kurang. Nanti dapat diganti hasil prediksi dari tim AI.</p>
         {flagged.slice(0, 10).map((b) => (
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 border-t border-[#edf0ed] py-3.5 sm:grid-cols-[minmax(0,1.15fr)_minmax(170px,1.7fr)_auto] sm:gap-[18px]" key={b.batch_id}>
             <div><b className="mb-0.5 block text-[13px] font-semibold">{b.product_name}</b><small className="block text-xs text-[#788984]">{b.batch_id} · stok {b.current_stock}</small></div>

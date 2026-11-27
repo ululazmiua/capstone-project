@@ -130,6 +130,19 @@ function ReceiptForm({
     }
 
     if (
+      isNewProduct &&
+      products.some(
+        (item) =>
+          item.product_name.trim().toLowerCase() === productName.toLowerCase()
+      )
+    ) {
+      setMessage(
+        'Produk dengan nama ini sudah terdaftar. Tutup form ini lalu pilih lewat “+ Produk terdaftar”.'
+      )
+      return
+    }
+
+    if (
       !form.current_stock ||
       !Number.isInteger(stock) ||
       stock < 1
@@ -157,8 +170,13 @@ function ReceiptForm({
       return
     }
 
-    if (form.expiry_date < form.received_at) {
-      setMessage('Tanggal kedaluwarsa tidak boleh sebelum tanggal penerimaan.')
+    if (form.received_at > today()) {
+      setMessage('Tanggal penerimaan tidak boleh lebih dari hari ini.')
+      return
+    }
+
+    if (form.expiry_date <= form.received_at) {
+      setMessage('Tanggal kedaluwarsa harus setelah tanggal penerimaan.')
       return
     }
 
@@ -375,6 +393,7 @@ function ReceiptForm({
             <input
               className={controlClass}
               type="date"
+              max={today()}
               value={form.received_at}
               onChange={set('received_at')}
               required

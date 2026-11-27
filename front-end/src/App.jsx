@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import {
   createBatch,
@@ -6,7 +6,9 @@ import {
   createSupplier,
   deleteSupplier,
   getBatches,
+  getPulledIds,
   getSuppliers,
+  savePulledIds,
   updateBatch,
   updateSupplier,
 } from './api.js'
@@ -61,7 +63,7 @@ export default function App() {
   const [state, setState] = useState('loading')
   const [supplierState, setSupplierState] = useState('loading')
   const [supplierError, setSupplierError] = useState('')
-  const [pulled, setPulled] = useState(() => new Set())
+  const [pulled, setPulled] = useState(() => new Set(getPulledIds()))
   const [toast, setToast] = useState('')
 
   const handleLoginSuccess = useCallback(
@@ -156,8 +158,30 @@ export default function App() {
     )?.name || ''
   }
 
+  // Nama supplier pada batch selalu mengikuti data supplier terbaru. Jika supplier
+  // sudah dihapus, nama yang tersimpan di batch tetap dipakai.
+  const batchesView = useMemo(
+    () =>
+      data.map((batch) => {
+        if (batch.supplier_id === null || batch.supplier_id === undefined || batch.supplier_id === '') {
+          return batch
+        }
+
+        const supplier = suppliers.find(
+          (item) => String(item.id ?? item.supplier_id) === String(batch.supplier_id)
+        )
+
+        return supplier && supplier.name !== batch.supplier_name
+          ? { ...batch, supplier_name: supplier.name }
+          : batch
+      }),
+    [data, suppliers]
+  )
+
   const pull = (b) => {
-    setPulled((s) => new Set(s).add(b.batch_id))
+    const next = new Set(pulled).add(b.batch_id)
+    savePulledIds(next)
+    setPulled(next)
     say(`${b.product_name} (${b.batch_id}) ditandai sudah ditarik`)
   }
 
@@ -169,11 +193,12 @@ export default function App() {
     const saved = existing
       ? await updateBatch(existing.batch_id, batchWithSupplier)
       : await createBatch(batchWithSupplier)
-    setData((current) =>
-      existing
-        ? current.map((item) => (item.batch_id === existing.batch_id ? saved : item))
-        : [saved, ...current]
-    )
+    if (existing) {
+      // Muat ulang dari penyimpanan karena nama/kategori produk bisa ikut berubah di batch lain.
+      setData(await getBatches())
+    } else {
+      setData((current) => [saved, ...current])
+    }
     say(existing ? 'Perubahan batch berhasil disimpan.' : 'Batch baru berhasil ditambahkan.')
   }
 
@@ -247,7 +272,7 @@ export default function App() {
       })
   }
 
-  const props = { data, pulled, pull, suppliers, onSaveBatch: saveBatch }
+  const props = { data: batchesView, pulled, pull, suppliers, onSaveBatch: saveBatch }
 
   return (
     <>
@@ -291,8 +316,11 @@ export default function App() {
             }
           >
             <Route index element={<Navigate to="ringkasan" replace />} />
-            <Route path="ringkasan" element={<AdminRingkasan data={data} />} />
-            <Route path="barang-masuk" element={<AdminBarangMasuk data={data} />} />
+            <Route
+              path="ringkasan"
+              element={<AdminRingkasan data={batchesView} pulled={pulled} />}
+            />
+            <Route path="barang-masuk" element={<AdminBarangMasuk data={batchesView} />} />
             <Route
               path="supplier"
               element={
@@ -334,7 +362,7 @@ export default function App() {
               path="barang-masuk"
               element={
                 <BarangMasuk
-                  data={data}
+                  data={batchesView}
                   suppliers={suppliers}
                   onSubmit={receiveGoods}
                   onGoToSuppliers={() => navigate('/karyawan/supplier')}

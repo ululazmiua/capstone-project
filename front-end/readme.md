@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Buka aplikasi di `http://localhost:5173`. Untuk membuat build produksi, jalankan `npm run build`.
+Buka aplikasi di `http://localhost:5173` (bukan `127.0.0.1`), karena hanya alamat itu yang diizinkan oleh backend. Jika port 5173 sedang dipakai, `npm run dev` akan berhenti dengan pesan kesalahan; tutup aplikasi yang memakai port tersebut lalu jalankan ulang. Untuk membuat build produksi, jalankan `npm run build`.
 
 ## Sumber data
 

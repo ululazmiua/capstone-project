@@ -5,7 +5,7 @@ import { firstOfMonth, today } from './dates.js'
 import { inputClass, Metric, panelClass } from './components.jsx'
 
 // Halaman Ringkasan (admin)
-export default function AdminRingkasan({ data = [] }) {
+export default function AdminRingkasan({ data = [], pulled = new Set() }) {
   const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data])
 
   const [from, setFrom] = useState(firstOfMonth)
@@ -52,9 +52,12 @@ export default function AdminRingkasan({ data = [] }) {
     0
   )
 
+  // Batch yang sudah ditandai ditarik oleh karyawan tidak dihitung lagi.
   const expired = safeData.filter(
     (batch) =>
-      batch.status === 'KADALUARSA' && batch.current_stock > 0
+      batch.status === 'KADALUARSA' &&
+      batch.current_stock > 0 &&
+      !pulled.has(batch.batch_id)
   )
 
   const nearExpiry = safeData.filter(

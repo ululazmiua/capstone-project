@@ -384,7 +384,7 @@ export default function AdminKaryawan() {
       const trimmedPassword = (form.password || '').trim()
 
       if (!isEditing || form.username !== form.original_username) {
-        const usernameError = validateUsername(form.username)
+        const usernameError = validateUsername(cleanUsername)
         if (usernameError) {
           setFormError(usernameError)
           return

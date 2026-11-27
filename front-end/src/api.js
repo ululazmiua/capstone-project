@@ -12,6 +12,7 @@ const PREFIX = 'royal-petcare-demo-v2:'
 const KEYS = {
   batches: `${PREFIX}batches`,
   sales: `${PREFIX}sales`,
+  pulled: `${PREFIX}pulled`,
 }
 
 // ---------------------------------------------------------------------
@@ -65,6 +66,17 @@ if (typeof window !== 'undefined') {
   window.resetDemoData = resetDemoData
 }
 
+// Batch kedaluwarsa yang sudah ditandai "ditarik dari rak" disimpan di browser,
+// supaya tidak muncul lagi setelah halaman dimuat ulang.
+export function getPulledIds() {
+  const saved = read(KEYS.pulled, [])
+  return Array.isArray(saved) ? saved : []
+}
+
+export function savePulledIds(ids) {
+  write(KEYS.pulled, [...ids])
+}
+
 // ---------------------------------------------------------------------
 // Tanggal & status kedaluwarsa
 // ---------------------------------------------------------------------
@@ -89,7 +101,7 @@ function normalizeDate(value) {
       date.getMonth() !== month - 1 ||
       date.getDate() !== day
     ) {
-      throw new Error('Tanggal kedaluwarsa tidak valid.')
+      throw new Error('Tanggal tidak valid.')
     }
 
     return `${match[1]}-${match[2]}-${match[3]}`
@@ -98,7 +110,7 @@ function normalizeDate(value) {
   const date = new Date(text)
 
   if (Number.isNaN(date.getTime())) {
-    throw new Error('Tanggal kedaluwarsa tidak valid.')
+    throw new Error('Tanggal tidak valid.')
   }
 
   return [
@@ -198,11 +210,17 @@ export async function createBatch(batch) {
   const batches = await getBatches()
   const { productName, category, stock, price, expiry } = cleanBatchInput(batch)
 
-  const existingProduct = batches.find(
-    (b) =>
-      (batch.product_id && b.product_id === batch.product_id) ||
-      b.product_name.toLowerCase() === productName.toLowerCase()
-  )
+  const entryDate = normalizeDate(batch.received_at) || todayText()
+  if (entryDate > todayText()) {
+    fail('Tanggal penerimaan tidak boleh lebih dari hari ini.')
+  }
+  if (expiry <= entryDate) {
+    fail('Tanggal kedaluwarsa harus setelah tanggal penerimaan.')
+  }
+
+  const existingProduct =
+    (batch.product_id && batches.find((b) => b.product_id === batch.product_id)) ||
+    batches.find((b) => b.product_name.toLowerCase() === productName.toLowerCase())
 
   const productId =
     batch.product_id ||
@@ -226,14 +244,15 @@ export async function createBatch(batch) {
   const saved = {
     batch_id: `BTC${String(batchNumber).padStart(5, '0')}`,
     product_id: productId,
-    product_name: productName,
-    category: category || existingProduct?.category || '',
+    // Nama dan kategori mengikuti produk yang sudah terdaftar (satu produk, satu kategori).
+    product_name: existingProduct?.product_name || productName,
+    category: existingProduct?.category || category,
     unit_price: price,
     batch_number: String(batch.batch_number || '').trim(),
     initial_stock: stock,
     quantity_sold: 0,
     current_stock: stock,
-    entry_date: normalizeDate(batch.received_at) || todayText(),
+    entry_date: entryDate,
     expiry_date: expiry,
     supplier_id: supplierId,
     supplier_name: supplierNameOf(supplierId, batch.supplier_name),
@@ -251,9 +270,27 @@ export async function updateBatch(batchId, batch) {
 
   const { productName, category, stock, price, expiry } = cleanBatchInput(batch)
   const old = batches[index]
+
+  const entryDate = String(old.entry_date || '').slice(0, 10)
+  if (entryDate && expiry <= entryDate) {
+    fail(
+      `Tanggal kedaluwarsa harus setelah tanggal masuk batch (${entryDate.split('-').reverse().join('/')}).`
+    )
+  }
+
+  const nameUsedByOtherProduct = batches.some(
+    (b) =>
+      b.product_id !== old.product_id &&
+      String(b.product_name).toLowerCase() === productName.toLowerCase()
+  )
+  if (nameUsedByOtherProduct) fail('Nama produk sudah dipakai produk lain.')
+
   const supplierId =
     batch.supplier_id === '' || batch.supplier_id == null ? null : Number(batch.supplier_id)
+  const { days_until_expiry, status } = expiryInfo(expiry, stock)
 
+  // priority_sale_flag sengaja tidak diubah di sini: nilainya berasal dari data
+  // awal atau hasil prediksi tim AI, bukan dari perhitungan lokal.
   const saved = {
     ...old,
     product_name: productName,
@@ -261,15 +298,24 @@ export async function updateBatch(batchId, batch) {
     unit_price: price,
     batch_number: String(batch.batch_number || old.batch_number || '').trim(),
     current_stock: stock,
-    initial_stock: Math.max(Number(old.initial_stock) || 0, stock + (Number(old.quantity_sold) || 0)),
+    // Seperti pada data awal: stok awal = stok sekarang + jumlah terjual.
+    initial_stock: stock + (Number(old.quantity_sold) || 0),
     expiry_date: expiry,
     supplier_id: supplierId,
     supplier_name: supplierNameOf(supplierId, batch.supplier_name),
-    ...expiryInfo(expiry, stock),
+    days_until_expiry,
+    status,
   }
 
-  batches[index] = saved
-  write(KEYS.batches, batches)
+  // Nama dan kategori melekat pada produk, jadi berlaku untuk semua batch produk yang sama.
+  write(
+    KEYS.batches,
+    batches.map((item, position) => {
+      if (position === index) return saved
+      if (item.product_id !== saved.product_id) return item
+      return { ...item, product_name: saved.product_name, category: saved.category }
+    })
+  )
   return clone(saved)
 }
 
@@ -386,9 +432,15 @@ export async function createSale(sale) {
 
   const quantity = Number(sale.quantity)
   const batch = batches[index]
+  const soldAt = normalizeDate(sale.sold_at) || todayText()
 
   if (!Number.isInteger(quantity) || quantity <= 0) fail('Jumlah terjual tidak valid.')
+  if (batch.status === 'KADALUARSA') fail('Batch sudah kedaluwarsa dan tidak dapat dijual.')
   if (quantity > Number(batch.current_stock)) fail('Jumlah melebihi stok yang tersedia.')
+  if (soldAt > todayText()) fail('Tanggal penjualan tidak boleh lebih dari hari ini.')
+  if (batch.entry_date && soldAt < String(batch.entry_date).slice(0, 10)) {
+    fail('Tanggal penjualan tidak boleh sebelum tanggal masuk batch.')
+  }
 
   batches[index] = {
     ...batch,
@@ -405,7 +457,7 @@ export async function createSale(sale) {
     quantity,
     unit_price: Number(batch.unit_price),
     total: quantity * Number(batch.unit_price),
-    sold_at: normalizeDate(sale.sold_at) || todayText(),
+    sold_at: soldAt,
   }
   write(KEYS.sales, [...sales, saved])
   return clone(saved)

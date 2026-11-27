@@ -65,7 +65,7 @@ export default function Register({ onBackToLogin }) {
     const cleanUsername = username.trim()
     const cleanEmail = email.trim().toLowerCase()
 
-    const usernameError = validateUsername(username)
+    const usernameError = validateUsername(cleanUsername)
     if (usernameError) {
       setError(usernameError)
       return
