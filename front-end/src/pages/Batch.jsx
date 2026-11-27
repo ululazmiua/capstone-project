@@ -1,7 +1,7 @@
 
 import { useMemo, useState } from 'react'
 import { ExpiryBar, Pill } from '../components.jsx'
-import { rp } from '../util.js'
+import { CATEGORIES, rp } from '../util.js'
 
 const fieldClass =
   'mt-1 w-full rounded-[10px] border border-[#dfe7e1] bg-white px-3 py-2.5 text-sm text-[#19352e] outline-none focus:border-[#7eae96] focus:shadow-[0_0_0_3px_rgba(23,115,91,0.1)]'
@@ -139,20 +139,25 @@ function BatchForm({
               onChange={set('product_name')}
               required
               maxLength={150}
-              placeholder="Contoh: Makanan kucing 1 kg"
+              placeholder="Contoh: Pakan hewan 1 kg"
             />
           </label>
 
           <label className="text-xs font-semibold text-[#52685f]">
             Kategori *
-            <input
+            <select
               className={fieldClass}
               value={form.category}
               onChange={set('category')}
               required
-              maxLength={80}
-              placeholder="Contoh: Makanan Kucing"
-            />
+            >
+              <option value="">Pilih kategori</option>
+              {CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="text-xs font-semibold text-[#52685f]">
@@ -163,7 +168,7 @@ function BatchForm({
               onChange={set('batch_number')}
               required
               maxLength={80}
-              placeholder="Contoh: LOT-202610-001"
+              placeholder="Contoh: MEO-202602-736"
             />
           </label>
 
@@ -352,10 +357,10 @@ export default function Batch({
           }}
         >
           <option value="all">Semua status</option>
-          <option value="EXPIRED">Kedaluwarsa</option>
-          <option value="WARNING_NEAR_EXPIRY">≤ 30 hari</option>
-          <option value="ATTENTION">31–60 hari</option>
-          <option value="SAFE">Aman</option>
+          <option value="KADALUARSA">Kedaluwarsa</option>
+          <option value="KRITIS">Kritis (≤ 30 hari)</option>
+          <option value="WASPADA">Waspada (31–90 hari)</option>
+          <option value="AMAN">Aman</option>
         </select>
 
         <select

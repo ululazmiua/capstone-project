@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { fmtDate, rp } from '../util.js'
+import { CATEGORIES, fmtDate, rp } from '../util.js'
 
 const controlClass =
   'mt-1 w-full rounded-[10px] border border-[#dfe7e1] bg-white px-3 py-2.5 text-sm text-[#19352e] outline-none focus:border-[#7eae96] focus:shadow-[0_0_0_3px_rgba(23,115,91,0.1)]'
@@ -292,20 +292,25 @@ function ReceiptForm({
                   onChange={set('product_name')}
                   required
                   maxLength={150}
-                  placeholder="Contoh: Makanan kucing 1 kg"
+                  placeholder="Contoh: Pakan hewan 1 kg"
                 />
               </label>
 
               <label className="text-xs font-semibold text-[#52685f]">
                 Kategori *
-                <input
+                <select
                   className={controlClass}
                   value={form.category}
                   onChange={set('category')}
                   required
-                  maxLength={80}
-                  placeholder="Contoh: Makanan Kucing"
-                />
+                >
+                  <option value="">Pilih kategori</option>
+                  {CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </label>
             </>
           )}
@@ -328,7 +333,7 @@ function ReceiptForm({
               onChange={set('batch_number')}
               required
               maxLength={80}
-              placeholder="Contoh: LOT-202610-001"
+              placeholder="Contoh: MEO-202602-736"
             />
           </label>
 

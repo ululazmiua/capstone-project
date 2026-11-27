@@ -2,9 +2,9 @@ import { ExpiryBar, Stat } from '../components.jsx'
 import { nilai, rp } from '../util.js'
 
 export default function Ringkasan({ data, pulled, pull }) {
-  const expired = data.filter((b) => b.status === 'EXPIRED' && b.current_stock > 0 && !pulled.has(b.batch_id))
-  const near = data.filter((b) => b.status === 'WARNING_NEAR_EXPIRY' && b.current_stock > 0)
-  const att = data.filter((b) => b.status === 'ATTENTION' && b.current_stock > 0)
+  const expired = data.filter((b) => b.status === 'KADALUARSA' && b.current_stock > 0 && !pulled.has(b.batch_id))
+  const near = data.filter((b) => b.status === 'KRITIS' && b.current_stock > 0)
+  const att = data.filter((b) => b.status === 'WASPADA' && b.current_stock > 0)
   const loss = expired.reduce((s, b) => s + nilai(b), 0)
   const top = [...expired].sort((a, b) => nilai(b) - nilai(a)).slice(0, 8)
   const soon = [...near].sort((a, b) => a.days_until_expiry - b.days_until_expiry).slice(0, 8)
@@ -15,8 +15,8 @@ export default function Ringkasan({ data, pulled, pull }) {
       <div className="mb-[22px] grid grid-cols-2 gap-[9px] lg:grid-cols-4 lg:gap-[14px]">
         <Stat n={`${expired.length} batch`} label="Batch kedaluwarsa masih di rak" tone="bad" />
         <Stat n={rp(loss)} label="Nilai stok kedaluwarsa" tone="bad" />
-        <Stat n={`${near.length} batch`} label="Kedaluwarsa ≤ 30 hari" tone="warn" />
-        <Stat n={`${att.length} batch`} label="Kedaluwarsa 31–60 hari" tone="att" />
+        <Stat n={`${near.length} batch`} label="Kritis (≤ 30 hari)" tone="att" />
+        <Stat n={`${att.length} batch`} label="Waspada (31–90 hari)" tone="warn" />
       </div>
       <section className="mb-5 rounded-[15px] border border-[#e7ece8] bg-white px-[15px] py-[17px] shadow-[0_4px_16px_rgba(29,56,44,0.025)] sm:px-[22px] sm:py-[21px]">
         <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Tarik dari rak (nilai terbesar dulu)</h3>
@@ -30,7 +30,7 @@ export default function Ringkasan({ data, pulled, pull }) {
         ))}
       </section>
       <section className="mb-5 rounded-[15px] border border-[#e7ece8] bg-white px-[15px] py-[17px] shadow-[0_4px_16px_rgba(29,56,44,0.025)] sm:px-[22px] sm:py-[21px]">
-        <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Prioritas jual (paling dekat kedaluwarsa)</h3>
+        <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Segera jual (paling dekat kedaluwarsa)</h3>
         {soon.length === 0 && <p className="px-5 py-7 text-center text-[#788984]">Tidak ada batch yang mendekati kedaluwarsa.</p>}
         {soon.map((b) => (
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 border-t border-[#edf0ed] py-3.5 sm:grid-cols-[minmax(0,1.15fr)_minmax(170px,1.7fr)_auto] sm:gap-[18px]" key={b.batch_id}>

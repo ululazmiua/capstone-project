@@ -8,7 +8,7 @@ import Papa from 'papaparse'
 // browser, atau hapus localStorage situs ini.
 // =====================================================================
 
-const PREFIX = 'royal-petcare-demo:'
+const PREFIX = 'royal-petcare-demo-v2:'
 const KEYS = {
   batches: `${PREFIX}batches`,
   suppliers: `${PREFIX}suppliers`,
@@ -164,12 +164,12 @@ function expiryInfo(expiryDate, stock) {
 
   const status =
     days < 0
-      ? 'EXPIRED'
+      ? 'KADALUARSA'
       : days <= 30
-        ? 'WARNING_NEAR_EXPIRY'
-        : days <= 60
-          ? 'ATTENTION'
-          : 'SAFE'
+        ? 'KRITIS'
+        : days <= 90
+          ? 'WASPADA'
+          : 'AMAN'
 
   return {
     days_until_expiry: days,
@@ -201,11 +201,20 @@ async function loadCsvBatches() {
   }))
 }
 
+function refreshBatchExpiry(batch) {
+  const { days_until_expiry, status } = expiryInfo(
+    batch.expiry_date,
+    batch.current_stock
+  )
+
+  return { ...batch, days_until_expiry, status }
+}
+
 export async function getBatches() {
   const saved = read(KEYS.batches, null)
-  if (Array.isArray(saved)) return clone(saved)
-
-  const batches = await loadCsvBatches()
+  const batches = Array.isArray(saved)
+    ? saved.map(refreshBatchExpiry)
+    : (await loadCsvBatches()).map(refreshBatchExpiry)
   write(KEYS.batches, batches)
   return clone(batches)
 }
@@ -248,7 +257,7 @@ export async function createBatch(batch) {
   const productId =
     batch.product_id ||
     existingProduct?.product_id ||
-    `PRD-${String(
+    `PRD${String(
       batches.reduce(
         (max, b) => Math.max(max, Number(String(b.product_id).replace(/\D/g, '')) || 0),
         0
@@ -265,7 +274,7 @@ export async function createBatch(batch) {
     batch.supplier_id === '' || batch.supplier_id == null ? null : Number(batch.supplier_id)
 
   const saved = {
-    batch_id: `BTC-${String(batchNumber).padStart(5, '0')}`,
+    batch_id: `BTC${String(batchNumber).padStart(5, '0')}`,
     product_id: productId,
     product_name: productName,
     category: category || existingProduct?.category || '',

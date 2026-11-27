@@ -19,7 +19,7 @@ function SaleForm({ data, onSubmit }) {
 
   const availableBatches = useMemo(
     () => data
-      .filter((batch) => batch.current_stock > 0 && batch.status !== 'EXPIRED')
+      .filter((batch) => batch.current_stock > 0 && batch.status !== 'KADALUARSA')
       .sort((a, b) => a.product_name.localeCompare(b.product_name, 'id') || a.days_until_expiry - b.days_until_expiry),
     [data]
   )
@@ -165,7 +165,7 @@ export default function Penjualan({ data, onRecordSale }) {
     return Object.values(m).sort((a, b) => b.sold - a.sold)
   }, [data])
   const max = Math.max(...prod.map((p) => p.sold), 1)
-  const flagged = data.filter((b) => b.priority_sale_flag && b.current_stock > 0).sort((a, b) => a.days_until_expiry - b.days_until_expiry)
+  const flagged = data.filter((b) => b.priority_sale_flag && b.current_stock > 0 && b.status !== 'KADALUARSA').sort((a, b) => a.days_until_expiry - b.days_until_expiry)
   const rank = (p, c) => (
     <div className="grid grid-cols-[minmax(0,1fr)_minmax(55px,1fr)_auto] items-center gap-2 border-t border-[#edf0ed] py-2.5 text-[11px] text-[#52685f] sm:grid-cols-[minmax(0,1.15fr)_minmax(80px,2fr)_auto] sm:gap-3 sm:text-xs" key={p.name}>
       <span>{p.name}</span><div className="h-[7px] overflow-hidden rounded-full bg-[#edf1ed]"><i className={`block h-full rounded-full ${c === 'low' ? 'bg-[#d3a14e]' : 'bg-[#17735b]'}`} style={{ width: Math.max(3, (p.sold / max) * 100) + '%' }} /></div><b className="font-bold">{p.sold}</b>
@@ -183,12 +183,12 @@ export default function Penjualan({ data, onRecordSale }) {
           <p className="mt-[13px] text-xs text-[#788984]">Tahan pembelian ulang sampai stok yang ada terjual.</p></section>
       </div>
       <section className="mb-5 rounded-[15px] border border-[#e7ece8] bg-white px-[15px] py-[17px] shadow-[0_4px_16px_rgba(29,56,44,0.025)] sm:px-[22px] sm:py-[21px]">
-        <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Rekomendasi prioritas jual dari model ({flagged.length} batch)</h3>
+        <h3 className="mb-[15px] text-[15px] font-bold tracking-[-0.015em]">Rekomendasi Prioritas Jual ({flagged.length} batch)</h3>
         <p className="mb-0 mt-0 text-xs text-[#788984]">Sementara berasal dari kolom <code className="rounded bg-[#f3f6f3] px-1 py-0.5">priority_sale_flag</code> di data. Nanti dapat diganti hasil prediksi dari tim AI.</p>
         {flagged.slice(0, 10).map((b) => (
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 border-t border-[#edf0ed] py-3.5 sm:grid-cols-[minmax(0,1.15fr)_minmax(170px,1.7fr)_auto] sm:gap-[18px]" key={b.batch_id}>
             <div><b className="mb-0.5 block text-[13px] font-semibold">{b.product_name}</b><small className="block text-xs text-[#788984]">{b.batch_id} · stok {b.current_stock}</small></div>
-            <ExpiryBar b={b} /><span className="inline-flex whitespace-nowrap rounded-full bg-[#fff2dc] px-2.5 py-[5px] text-[11px] font-bold leading-tight text-[#a76b1e]">Beri diskon</span>
+            <ExpiryBar b={b} /><span className="inline-flex whitespace-nowrap rounded-full bg-[#fff2dc] px-2.5 py-[5px] text-[11px] font-bold leading-tight text-[#a76b1e]">Prioritas Jual</span>
           </div>
         ))}
       </section>

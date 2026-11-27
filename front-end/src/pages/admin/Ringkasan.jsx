@@ -54,12 +54,12 @@ export default function AdminRingkasan({ data = [] }) {
 
   const expired = safeData.filter(
     (batch) =>
-      batch.status === 'EXPIRED' && batch.current_stock > 0
+      batch.status === 'KADALUARSA' && batch.current_stock > 0
   )
 
   const nearExpiry = safeData.filter(
     (batch) =>
-      ['WARNING_NEAR_EXPIRY', 'ATTENTION'].includes(batch.status) &&
+      ['KRITIS', 'WASPADA'].includes(batch.status) &&
       batch.current_stock > 0
   )
 
@@ -126,7 +126,7 @@ export default function AdminRingkasan({ data = [] }) {
           label="Batch mendekati kedaluwarsa"
           value={`${nearExpiry.length} batch`}
           tone="amber"
-          detail="Stok tersisa dengan masa kedaluwarsa ≤ 60 hari"
+          detail="Stok tersisa dengan masa kedaluwarsa ≤ 90 hari"
         />
 
         <Metric
@@ -179,9 +179,11 @@ export default function AdminRingkasan({ data = [] }) {
 
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                  batch.status === 'EXPIRED'
+                  batch.status === 'KADALUARSA'
                     ? 'bg-[#fbeae7] text-[#a43e32]'
-                    : 'bg-[#fff2dc] text-[#a76b1e]'
+                    : batch.status === 'KRITIS'
+                      ? 'bg-[#ffedd5] text-[#c2410c]'
+                      : 'bg-[#fff2dc] text-[#a76b1e]'
                 }`}
               >
                 {dtxt(batch.days_until_expiry)}

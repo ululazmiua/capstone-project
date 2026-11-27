@@ -4,14 +4,14 @@ import { STATUS } from './util.js'
 const STATUS_STYLES = {
   ok: 'bg-[#e6f4ed] text-[#278264]',
   warn: 'bg-[#fff2dc] text-[#a76b1e]',
-  att: 'bg-[#eaf1fc] text-[#4975b6]',
+  att: 'bg-[#ffedd5] text-[#c2410c]',
   bad: 'bg-[#fbeae7] text-[#c55342]',
 }
 
 const BAR_STYLES = {
   ok: 'bg-[#278264]',
   warn: 'bg-[#dfa83f]',
-  att: 'bg-[#6591d0]',
+  att: 'bg-[#f97316]',
   bad: 'bg-[#c55342]',
 }
 
@@ -135,7 +135,7 @@ export function ExpiryBar({ b }) {
 const STAT_STYLES = {
   bad: 'border-[#e7c2bb] bg-[#f2dcd7]',
   warn: 'border-[#e2d0a8] bg-[#efe3c5]',
-  att: 'border-[#bfd0e2] bg-[#dce6f1]',
+  att: 'border-[#fdba74] bg-[#ffedd5]',
 }
 
 export const Stat = ({ n, label, tone }) => {
